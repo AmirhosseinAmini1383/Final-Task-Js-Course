@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.7/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="./styles/index.css" />
+    <title>تسک دوره جاوااسکریپت</title>
+  </head>
+
+  <body>
+    <div class="container">
+      <!-- App Header -->
+      <div class="header_app">
+        <h1 class="header_app-title">لیست تراکنش ها</h1>
+        <div class="header_app-search hidden">
+          <input
+            type="text"
+            placeholder="جستجو تراکنش..."
+            class="search-input"
+          />
+          <label for="search-icon" class="search-icon-label"
+            ><img
+              class="search-icon"
+              src="../assets/icon/search-icon.svg"
+              alt="search-icon"
+          /></label>
+        </div>
+      </div>
+      <!-- App Loading-Transaction -->
+      <div class="loading_transaction_app">
+        <button class="load-transaction-btn">بارگذاری تراکنش ها</button>
+      </div>
+      <!-- App Table-Content -->
+      <div class="content_app hidden">
+        <h2 class="content_app-title">لیست تراکنش های شما</h2>
+        <div>
+          <table class="table_container">
+            <!-- th => table header -->
+            <tr class="table-header">
+              <th>ردیف</th>
+              <th>نوع تراکنش</th>
+              <th>
+                <div class="table_header-icon-container price-title">
+                  <p>مبلغ</p>
+                  <span>
+                    <img
+                      class="table-header-icon price-chevron"
+                      src="../assets/icon/chevron.svg"
+                      alt=""
+                    />
+                  </span>
+                </div>
+              </th>
+              <th>شماره پیگیری</th>
+              <th>
+                <div class="table_header-icon-container date-title">
+                  <p>تاریخ تراکنش</p>
+                  <span
+                    ><img
+                      class="table-header-icon date-chevron"
+                      src="../assets/icon/chevron.svg"
+                      alt=""
+                  /></span>
+                </div>
+              </th>
+            </tr>
+            <!-- td => table data -->
+            <!-- <tr class="table-data">
+              <td>10</td>
+              <td class="green_text">افزایش اعتبار</td>
+              <td>10.000.000</td>
+              <td>12345678</td>
+              <td>۱۳۹۹/۰۸/۱۲ ساعت ۱۲:۳۹</td>
+            </tr> -->
+          </table>
+        </div>
+      </div>
+    </div>
+    <script src="./js/index.js"></script>
+  </body>
+</html>

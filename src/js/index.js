@@ -23,7 +23,6 @@ function createTableData(data) {
   const rows = tableContainer.querySelectorAll("tr.table-data");
   rows.forEach((row) => row.remove());
   let result = "";
-  let message = "";
   if (data.length) {
     data.forEach((item) => {
       result += `
@@ -51,19 +50,17 @@ function createTableData(data) {
                </tr>
              `;
     });
-    messageStatus = false;
-  } else {
-    if (!messageStatus) {
-      message = `<h3 class="waiting-status">جستوجو یافت نشد</h3>`;
-      messageStatus = true;
-    }
   }
 
   const messageElement = msgStatus.querySelector(".waiting-status");
-  if (messageStatus && !messageElement) {
-    msgStatus.innerHTML += message;
-  } else if (!messageStatus && messageElement) {
-    messageElement.classList.add("hidden");
+  if (messageElement) {
+    messageElement.remove(); 
+    messageStatus = false;
+  }
+
+  if (data.length === 0 && !messageStatus) {
+    msgStatus.innerHTML = `<h3 class="waiting-status">جستوجو یافت نشد</h3>`;
+    messageStatus = true; 
   }
 
   tableContainer.innerHTML += result;

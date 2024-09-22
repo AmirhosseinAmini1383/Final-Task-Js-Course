@@ -54,13 +54,13 @@ function createTableData(data) {
 
   const messageElement = msgStatus.querySelector(".waiting-status");
   if (messageElement) {
-    messageElement.remove(); 
+    messageElement.remove();
     messageStatus = false;
   }
 
   if (data.length === 0 && !messageStatus) {
     msgStatus.innerHTML = `<h3 class="waiting-status">جستوجو یافت نشد</h3>`;
-    messageStatus = true; 
+    messageStatus = true;
   }
 
   tableContainer.innerHTML += result;
@@ -104,6 +104,11 @@ function sortData(data, sort, key) {
         : new Date(b.date) - new Date(a.date);
     }
   });
+  if (key === "price") {
+    sortPrice = sortedData;
+  } else if (key === "date") {
+    sortDate = sortedData;
+  }
   createTableData(sortedData);
 }
 
@@ -140,7 +145,11 @@ async function searchData(query) {
     sortData(
       searchAllData,
       currentSortOrder,
-      sortPrice.length > 0 ? "price" : "date"
+      sortPrice.length > 0
+        ? "price"
+        : sortDate.length > 0
+        ? "date"
+        : createTableData(res.data)
     );
   } catch (err) {
     console.log(err);

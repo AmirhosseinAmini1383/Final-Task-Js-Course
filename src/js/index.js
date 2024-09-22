@@ -5,6 +5,7 @@ const transactionApp = document.querySelector(".loading_transaction_app");
 const tableContainer = document.querySelector(".table_container");
 const searchInput = document.querySelector(".search-input");
 const msgStatus = document.querySelector(".msg-status");
+
 let allData = [];
 let searchAllData = [];
 let sortPrice = [];
@@ -50,6 +51,7 @@ function createTableData(data) {
                </tr>
              `;
     });
+    messageStatus = false;
   } else {
     if (!messageStatus) {
       message = `<h3 class="waiting-status">جستوجو یافت نشد</h3>`;
@@ -57,73 +59,54 @@ function createTableData(data) {
     }
   }
 
-  if (data.length > 0) {
-    const messageElement = msgStatus.querySelectorAll(".waiting-status");
-    if (messageElement) {
-      messageElement.forEach((item) => {
-        item.classList.add("hidden");
-      });
-    }
-    messageStatus = false;
+  const messageElement = msgStatus.querySelector(".waiting-status");
+  if (messageStatus && !messageElement) {
+    msgStatus.innerHTML += message;
+  } else if (!messageStatus && messageElement) {
+    messageElement.classList.add("hidden");
   }
-  msgStatus.innerHTML += message;
+
   tableContainer.innerHTML += result;
 
-  const priceTitle = document.querySelector(".price-title");
-  priceTitle.addEventListener("click", (e) => {
-    const chevronElement = priceTitle.querySelector(
-      "img.table-header-icon.price-chevron"
-    );
-    chevronElement.classList.remove("hidden");
-    chevronElement.classList.toggle("chevron-ascending");
-    if (chevronElement.classList.contains("chevron-ascending")) {
-      currentSortOrder = "asc";
-    } else {
-      currentSortOrder = "desc";
-    }
-    handleSortPriceData();
-  });
-  const dateTitle = document.querySelector(".date-title");
-  dateTitle.addEventListener("click", (e) => {
-    const chevronElement = dateTitle.querySelector(
-      "img.table-header-icon.date-chevron"
+  addSortEvent(document.querySelector(".price-title"), "price");
+  addSortEvent(document.querySelector(".date-title"), "date");
+}
+// HANDEL SHEVRON ICON AND SORT EVENT
+function addSortEvent(titleElement, key) {
+  titleElement.addEventListener("click", () => {
+    const chevronElement = titleElement.querySelector(
+      `img.table-header-icon.${key}-chevron`
     );
     chevronElement.classList.toggle("chevron-ascending");
     chevronElement.classList.remove("hidden");
-    if (chevronElement.classList.contains("chevron-ascending")) {
-      currentSortOrder = currentSortOrder = "asc";
-    } else {
-      currentSortOrder = currentSortOrder = "desc";
-    }
-    handleSortDateData();
+    currentSortOrder = chevronElement.classList.contains("chevron-ascending")
+      ? "asc"
+      : "desc";
+    key === "price" ? handleSortPriceData() : handleSortDateData();
   });
 }
+
 // SORT PRICE DATA AND SORT DATE DATA
 function handleSortPriceData() {
   const dataToSort = searchQuery ? searchAllData : allData;
-  sortPriceData(dataToSort, currentSortOrder);
-}
-
-function sortPriceData(data, sort) {
-  const sortedData = data.sort((a, b) => {
-    return sort === "asc" ? a.price - b.price : b.price - a.price;
-  });
-  sortPrice = sortedData;
-  createTableData(sortedData);
+  sortData(dataToSort, currentSortOrder, "price");
 }
 
 function handleSortDateData() {
   const dataToSort = searchQuery ? searchAllData : allData;
-  sortDateData(dataToSort, currentSortOrder);
+  sortData(dataToSort, currentSortOrder, "date");
 }
 
-function sortDateData(data, sort) {
+function sortData(data, sort, key) {
   const sortedData = data.sort((a, b) => {
-    return sort === "asc"
-      ? new Date(a.date) - new Date(b.date)
-      : new Date(b.date) - new Date(a.date);
+    if (key === "price") {
+      return sort === "asc" ? a.price - b.price : b.price - a.price;
+    } else if (key === "date") {
+      return sort === "asc"
+        ? new Date(a.date) - new Date(b.date)
+        : new Date(b.date) - new Date(a.date);
+    }
   });
-  sortDate = sortedData;
   createTableData(sortedData);
 }
 
@@ -142,31 +125,27 @@ searchInput.addEventListener("input", (e) => {
 // SERVER
 
 async function getData() {
-  const data = await axios
-    .get("http://localhost:3000/transactions")
-    .then((res) => res.data)
-    .catch((err) => console.log(err.response.data));
-  allData = data;
-  createTableData(data);
+  try {
+    const res = await axios.get("http://localhost:3000/transactions");
+    allData = res.data;
+    createTableData(allData);
+  } catch (err) {
+    console.log(err.response.data);
+  }
 }
 
 async function searchData(query) {
-  const data = await axios
-    .get(`http://localhost:3000/transactions?refId_like=${query}`)
-    .then((res) => res.data)
-    .catch((err) => console.log(err));
-
-  searchAllData = data;
-
-  if (currentSortOrder) {
-    if (sortPrice.length > 0) {
-      sortPriceData(data, currentSortOrder);
-    } else if (sortDate.length > 0) {
-      sortDateData(data, currentSortOrder);
-    } else {
-      createTableData(data);
-    }
-  } else {
-    createTableData(data);
+  try {
+    const res = await axios.get(
+      `http://localhost:3000/transactions?refId_like=${query}`
+    );
+    searchAllData = res.data;
+    sortData(
+      searchAllData,
+      currentSortOrder,
+      sortPrice.length > 0 ? "price" : "date"
+    );
+  } catch (err) {
+    console.log(err);
   }
 }

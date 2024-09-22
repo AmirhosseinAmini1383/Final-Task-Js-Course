@@ -1,13 +1,17 @@
-//
 const transactionBtn = document.querySelector(".load-transaction-btn");
 const contentApp = document.querySelector(".content_app");
 const headerAppSearch = document.querySelector(".header_app-search");
 const transactionApp = document.querySelector(".loading_transaction_app");
 const tableContainer = document.querySelector(".table_container");
 const searchInput = document.querySelector(".search-input");
+const msgStatus = document.querySelector(".msg-status");
 let allData = [];
+let searchAllData = [];
+let sortPrice = [];
+let sortDate = [];
 let currentSortOrder = "asc";
 let searchQuery = "";
+let messageStatus = false;
 // UI
 function handleUI() {
   transactionApp.classList.add("hidden");
@@ -17,35 +21,52 @@ function handleUI() {
 function createTableData(data) {
   const rows = tableContainer.querySelectorAll("tr.table-data");
   rows.forEach((row) => row.remove());
-  let result = ``;
+  let result = "";
+  let message = "";
+  if (data.length) {
+    data.forEach((item) => {
+      result += `
+               <tr class="table-data">
+                 <td>${item.id}</td>
+                 <td class="${
+                   item.type === "افزایش اعتبار"
+                     ? "green_text"
+                     : item.type === "برداشت از حساب"
+                     ? "red_text"
+                     : ""
+                 }">${item.type}</td>
+                 <td>${item.price}</td>
+                 <td>${item.refId}</td>
+                 <td>
+                   ${new Date(item.date).toLocaleDateString("fa-IR", {
+                     year: "numeric",
+                     month: "2-digit",
+                     day: "2-digit",
+                   })} ساعت ${new Date(item.date).toLocaleTimeString("fa-IR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}
+                 </td>
+               </tr>
+             `;
+    });
+  } else {
+    if (!messageStatus) {
+      message = `<h3 class="waiting-status">جستوجو یافت نشد</h3>`;
+      messageStatus = true;
+    }
+  }
 
-  data.forEach((item) => {
-    result += `
-             <tr class="table-data">
-               <td>${item.id}</td>
-               <td class="${
-                 item.type === "افزایش اعتبار"
-                   ? "green_text"
-                   : item.type === "برداشت از حساب"
-                   ? "red_text"
-                   : ""
-               }">${item.type}</td>
-               <td>${item.price}</td>
-               <td>${item.refId}</td>
-               <td>
-                 ${new Date(item.date).toLocaleDateString("fa-IR", {
-                   year: "numeric",
-                   month: "2-digit",
-                   day: "2-digit",
-                 })} ساعت ${new Date(item.date).toLocaleTimeString("fa-IR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    })}
-               </td>
-             </tr>
-           `;
-  });
-
+  if (data.length > 0) {
+    const messageElement = msgStatus.querySelectorAll(".waiting-status");
+    if (messageElement) {
+      messageElement.forEach((item) => {
+        item.classList.add("hidden");
+      });
+    }
+    messageStatus = false;
+  }
+  msgStatus.innerHTML += message;
   tableContainer.innerHTML += result;
 
   const priceTitle = document.querySelector(".price-title");
@@ -53,13 +74,14 @@ function createTableData(data) {
     const chevronElement = priceTitle.querySelector(
       "img.table-header-icon.price-chevron"
     );
+    chevronElement.classList.remove("hidden");
     chevronElement.classList.toggle("chevron-ascending");
     if (chevronElement.classList.contains("chevron-ascending")) {
       currentSortOrder = "asc";
     } else {
       currentSortOrder = "desc";
     }
-    handleSortPriceData(e);
+    handleSortPriceData();
   });
   const dateTitle = document.querySelector(".date-title");
   dateTitle.addEventListener("click", (e) => {
@@ -67,28 +89,42 @@ function createTableData(data) {
       "img.table-header-icon.date-chevron"
     );
     chevronElement.classList.toggle("chevron-ascending");
+    chevronElement.classList.remove("hidden");
     if (chevronElement.classList.contains("chevron-ascending")) {
       currentSortOrder = currentSortOrder = "asc";
     } else {
       currentSortOrder = currentSortOrder = "desc";
     }
-    handleSortDateData(currentSortOrder);
+    handleSortDateData();
   });
 }
-// SORT PRICE DATA AND TOGGLE CHEVRON ANIMATED
-function handleSortPriceData(e) {
-  sortPriceData(currentSortOrder);
+// SORT PRICE DATA AND SORT DATE DATA
+function handleSortPriceData() {
+  const dataToSort = searchQuery ? searchAllData : allData;
+  sortPriceData(dataToSort, currentSortOrder);
 }
 
-function handleSortDateData(sort) {
-  const sortDateData = allData.sort((a, b) => {
-    if (sort === "asc") {
-      return new Date(a.date) > new Date(b.date) ? -1 : 1;
-    } else if (sort === "desc") {
-      return new Date(a.date) > new Date(b.date) ? 1 : -1;
-    }
+function sortPriceData(data, sort) {
+  const sortedData = data.sort((a, b) => {
+    return sort === "asc" ? a.price - b.price : b.price - a.price;
   });
-  createTableData(sortDateData);
+  sortPrice = sortedData;
+  createTableData(sortedData);
+}
+
+function handleSortDateData() {
+  const dataToSort = searchQuery ? searchAllData : allData;
+  sortDateData(dataToSort, currentSortOrder);
+}
+
+function sortDateData(data, sort) {
+  const sortedData = data.sort((a, b) => {
+    return sort === "asc"
+      ? new Date(a.date) - new Date(b.date)
+      : new Date(b.date) - new Date(a.date);
+  });
+  sortDate = sortedData;
+  createTableData(sortedData);
 }
 
 // EVENT
@@ -97,19 +133,10 @@ transactionBtn.addEventListener("click", () => {
   getData();
   handleUI();
 });
+
 searchInput.addEventListener("input", (e) => {
   searchQuery = searchInput.value;
   searchData(searchQuery);
-});
-searchInput.addEventListener("blur", () => {
-  const priceTitle = document.querySelector(".price-title");
-  const dateTitle = document.querySelector(".date-title");
-  priceTitle.addEventListener("click", () => {
-    SearchAndSortTogether(searchQuery, currentSortOrder);
-  });
-  dateTitle.addEventListener("click", () => {
-    SearchAndSortTogether(searchQuery, currentSortOrder);
-  });
 });
 
 // SERVER
@@ -123,30 +150,23 @@ async function getData() {
   createTableData(data);
 }
 
-async function sortPriceData(sort) {
-  const data = await axios
-    .get(`http://localhost:3000/transactions?_sort=price&_order=${sort}`)
-    .then((res) => res.data)
-    .catch((err) => console.log(err));
-  createTableData(data);
-}
-
 async function searchData(query) {
   const data = await axios
     .get(`http://localhost:3000/transactions?refId_like=${query}`)
     .then((res) => res.data)
     .catch((err) => console.log(err));
-  createTableData(data);
-}
 
-async function SearchAndSortTogether(query, sort) {
-  console.log("run SearchAndSortTogether");
-  const data = await axios
-    .get(
-      `http://localhost:3000/transactions?refId_like=${query}&_sort=price&_order=${sort}`
-    )
-    .then((res) => res.data)
-    .catch((err) => console.log(err));
-  console.log(query, sort);
-  createTableData(data);
+  searchAllData = data;
+
+  if (currentSortOrder) {
+    if (sortPrice.length > 0) {
+      sortPriceData(data, currentSortOrder);
+    } else if (sortDate.length > 0) {
+      sortDateData(data, currentSortOrder);
+    } else {
+      createTableData(data);
+    }
+  } else {
+    createTableData(data);
+  }
 }

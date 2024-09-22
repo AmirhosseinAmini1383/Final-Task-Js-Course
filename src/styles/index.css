@@ -149,14 +149,14 @@ html {
 .table-header-icon {
   width: 10px;
   height: 10px;
-  margin-top: 5px;
-  margin-right: 6px;
+  position: relative;
+  top: 2px;
+  right: 5px;
   transition: all 0.3s ease-in;
 }
 .table-header-icon.chevron-ascending {
   transform: rotate(180deg);
 }
-
 .table-header th {
   color: var(--color-secondary-400);
   background: var(--color-secondary-100);
@@ -174,4 +174,9 @@ html {
 .table-data .red_text {
   color: var(--color-red-400);
   font-weight: 700;
+}
+.waiting-status {
+  text-align: center;
+  padding-top: 2rem;
+  color: var(--color-error);
 }
